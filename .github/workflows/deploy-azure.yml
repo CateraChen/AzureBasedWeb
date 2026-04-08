@@ -1,0 +1,160 @@
+name: Deploy Azure
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Resolve frontend origin
+        id: frontend-origin
+        env:
+          AZURE_BACKEND_RESOURCE_GROUP: ${{ secrets.AZURE_BACKEND_RESOURCE_GROUP }}
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+        run: |
+          FRONTEND_ORIGIN=$(az storage account show \
+            --resource-group "$AZURE_BACKEND_RESOURCE_GROUP" \
+            --name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
+            --query "primaryEndpoints.web" \
+            -o tsv | sed 's:/$::')
+          echo "origin=$FRONTEND_ORIGIN" >> "$GITHUB_OUTPUT"
+
+      - name: Restore backend
+        run: dotnet restore backend/Bacchus.API/Bacchus.API.csproj
+
+      - name: Install dotnet-ef
+        run: |
+          dotnet tool install --global dotnet-ef
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Apply database migrations
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+        run: |
+          dotnet ef database update \
+            --project backend/Bacchus.Infrastructure/Bacchus.Infrastructure.csproj \
+            --startup-project backend/Bacchus.API/Bacchus.API.csproj \
+            --configuration Release
+
+      - name: Publish backend
+        run: dotnet publish backend/Bacchus.API/Bacchus.API.csproj -c Release -o "$GITHUB_WORKSPACE/backend-publish"
+
+      - name: Package backend
+        run: |
+          cd "$GITHUB_WORKSPACE/backend-publish"
+          zip -r "$GITHUB_WORKSPACE/backend.zip" .
+
+      - name: Sync App Service settings
+        env:
+          AZURE_BACKEND_RESOURCE_GROUP: ${{ secrets.AZURE_BACKEND_RESOURCE_GROUP }}
+          AZURE_BACKEND_WEBAPP_NAME: ${{ secrets.AZURE_BACKEND_WEBAPP_NAME }}
+          AZURE_SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FRONTEND_ORIGIN: ${{ steps.frontend-origin.outputs.origin }}
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_BACKEND_RESOURCE_GROUP" \
+            --name "$AZURE_BACKEND_WEBAPP_NAME" \
+            --settings \
+              ASPNETCORE_ENVIRONMENT=Production \
+              AllowedOrigins="$FRONTEND_ORIGIN" \
+              ConnectionStrings__DefaultConnection="$AZURE_SQL_CONNECTION_STRING" \
+              Jwt__Secret="$JWT_SECRET" \
+              Jwt__Issuer=bacchus-api \
+              Jwt__Audience=bacchus-frontend
+
+      - name: Deploy backend package
+        env:
+          AZURE_BACKEND_RESOURCE_GROUP: ${{ secrets.AZURE_BACKEND_RESOURCE_GROUP }}
+          AZURE_BACKEND_WEBAPP_NAME: ${{ secrets.AZURE_BACKEND_WEBAPP_NAME }}
+        run: |
+          az webapp deploy \
+            --resource-group "$AZURE_BACKEND_RESOURCE_GROUP" \
+            --name "$AZURE_BACKEND_WEBAPP_NAME" \
+            --src-path "$GITHUB_WORKSPACE/backend.zip" \
+            --type zip
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_API_URL: https://${{ secrets.AZURE_BACKEND_WEBAPP_NAME }}.azurewebsites.net
+        run: npm run build
+
+      - name: Ensure static website is enabled
+        env:
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+        run: |
+          az storage blob service-properties update \
+            --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
+            --static-website \
+            --index-document index.html \
+            --404-document index.html \
+            --auth-mode login
+
+      - name: Clear previous frontend assets
+        env:
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+        run: |
+          az storage blob delete-batch \
+            --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
+            --source '$web' \
+            --auth-mode login
+
+      - name: Upload frontend assets
+        env:
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+        run: |
+          az storage blob upload-batch \
+            --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
+            --destination '$web' \
+            --source frontend/dist \
+            --overwrite \
+            --auth-mode login

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/Bacchus.API/Bacchus.API.csproj" />
+    <Project Path="backend/Bacchus.Application/Bacchus.Application.csproj" />
+    <Project Path="backend/Bacchus.Domain/Bacchus.Domain.csproj" />
+    <Project Path="backend/Bacchus.Infrastructure/Bacchus.Infrastructure.csproj" />
+  </Folder>
+</Solution>

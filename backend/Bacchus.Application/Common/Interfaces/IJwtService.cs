@@ -1,0 +1,8 @@
+namespace Bacchus.Application.Common.Interfaces;
+
+public interface IJwtService
+{
+    string GenerateAccessToken(Guid userId, string email, string role);
+    string GenerateRefreshToken();
+    DateTime AccessTokenExpiresAt { get; }
+}
