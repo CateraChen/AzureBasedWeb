@@ -62,8 +62,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddHealthChecks()
-    .AddDbContextCheck<BaccDbContext>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -81,12 +80,22 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<BaccDbContext>();
-    db.Database.Migrate();
-    await Bacchus.Infrastructure.Persistence.DbSeeder.SeedAsync(db);
+    if (db.Database.IsRelational())
+    {
+        if (app.Environment.IsDevelopment())
+        {
+            db.Database.Migrate();
+            await Bacchus.Infrastructure.Persistence.DbSeeder.SeedAsync(db);
+        }
+    }
+    else
+    {
+        await db.Database.EnsureCreatedAsync();
+        await Bacchus.Infrastructure.Persistence.DbSeeder.SeedAsync(db);
+    }
 }
 
 app.Run();

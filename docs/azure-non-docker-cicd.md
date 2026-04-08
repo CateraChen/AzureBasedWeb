@@ -6,7 +6,7 @@
 
 - 后端：Azure App Service，运行 .NET 8
 - 前端：Azure Storage Static Website，部署 Vite 构建产物
-- 数据库：Azure SQL Database
+- 数据库：Azure SQL Database，可通过 `ENABLE_AZURE_SQL` 开关临时关闭创建
 - CI/CD：GitHub Actions
 
 ## 已新增内容
@@ -25,11 +25,10 @@
 1. 编辑 `scripts/azure-setup.sh` 顶部变量，至少填写这些值：
   - `APP_SERVICE_SKU`：默认 `D1`，优先规避 `Free VMs` 和 `Basic VMs` 配额不足
   - `APP_SERVICE_OS`：默认 `windows`，与 `D1` 共享层兼容
+  - `ENABLE_AZURE_SQL`：默认 `false`，当前阶段不创建 Azure SQL
    - `BACKEND_WEBAPP_NAME`
    - `FRONTEND_STORAGE_ACCOUNT`
-   - `SQL_SERVER_NAME`
-   - `SQL_ADMIN_USER`
-   - `SQL_ADMIN_PASSWORD`
+   - `SQL_SERVER_NAME`、`SQL_ADMIN_USER`、`SQL_ADMIN_PASSWORD`：仅当 `ENABLE_AZURE_SQL=true` 时需要
   - `AZURE_TENANT_ID`：如果账号在多个 Entra ID tenant 下，建议显式指定
   - `AZURE_SUBSCRIPTION_ID`：如果一个 tenant 下有多个订阅，可选填
 2. 本地执行：
@@ -44,7 +43,7 @@ chmod +x scripts/azure-setup.sh
    - `AZURE_BACKEND_RESOURCE_GROUP`
    - `AZURE_BACKEND_WEBAPP_NAME`
    - `AZURE_FRONTEND_STORAGE_ACCOUNT`
-   - `AZURE_SQL_CONNECTION_STRING`
+  - `AZURE_SQL_CONNECTION_STRING`：仅当 `ENABLE_AZURE_SQL=true` 时输出
    - `JWT_SECRET`
 
 ### 登录问题
@@ -69,10 +68,10 @@ chmod +x scripts/azure-setup.sh
 
 - 后端：
   - 登录 Azure
-  - 对 Azure SQL 执行 `dotnet ef database update`
+  - 若配置了 `AZURE_SQL_CONNECTION_STRING`，对 Azure SQL 执行 `dotnet ef database update`
   - `dotnet publish`
   - 使用 `az webapp deploy` 做 Zip Deploy
-  - 同步 App Service 配置，包括连接串、JWT 和 AllowedOrigins
+  - 同步 App Service 配置；有连接串时写入连接串，没有则只写 JWT 和 AllowedOrigins
 - 前端：
   - `npm ci`
   - `npm run build`
@@ -90,6 +89,8 @@ chmod +x scripts/azure-setup.sh
 - `Jwt__Audience=bacchus-frontend`
 - `AllowedOrigins=<Azure Storage Static Website URL>`
 
+当 `ENABLE_AZURE_SQL=false` 时，不会写入 `ConnectionStrings__DefaultConnection`，而是写入 `Database__Provider=InMemory`。
+
 前端构建时会自动使用：
 
 - `VITE_API_URL=https://<AZURE_BACKEND_WEBAPP_NAME>.azurewebsites.net`
@@ -97,4 +98,6 @@ chmod +x scripts/azure-setup.sh
 ## 当前限制
 
 - 生产环境只做数据库迁移，不会自动执行 `DbSeeder.SeedAsync`。
+- 当 `ENABLE_AZURE_SQL=false` 时，初始化脚本和工作流都不会创建或迁移 Azure SQL，后端会临时切到内存数据库。
 - 如果你需要 Azure 首次部署时自动灌入演示数据，需要再补一个受控的生产种子开关，不能直接复用当前 `Development` 分支逻辑。
+

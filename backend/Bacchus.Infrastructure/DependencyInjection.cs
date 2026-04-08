@@ -14,8 +14,19 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration config)
     {
+        var databaseProvider = config["Database:Provider"];
+        var connectionString = config.GetConnectionString("DefaultConnection");
+
         services.AddDbContext<BaccDbContext>(opts =>
-            opts.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+        {
+            if (string.Equals(databaseProvider, "InMemory", StringComparison.OrdinalIgnoreCase))
+            {
+                opts.UseInMemoryDatabase("BacchusDb");
+                return;
+            }
+
+            opts.UseSqlServer(connectionString);
+        });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IProductRepository, ProductRepository>();
