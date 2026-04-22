@@ -9,3 +9,9 @@
 /backend/Bacchus.Infrastructure/obj
 /backend/Bacchus.Application/bin
 /backend/Bacchus.Application/obj
+
+
+# Ignore AI skill files
+.github/prompts/
+.github/skills/
+AGENTS.md

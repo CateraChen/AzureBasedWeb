@@ -41,29 +41,29 @@ jobs:
         env:
           AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
-          az storage blob service-properties update \
-            --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
-            --static-website \
-            --index-document index.html \
-            --404-document index.html \
+          az storage blob service-properties update `
+            --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
+            --static-website `
+            --index-document index.html `
+            --404-document index.html `
             --auth-mode login
 
       - name: Clear previous frontend assets
         env:
           AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
-          az storage blob delete-batch \
-            --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
-            --source '$web' \
+          az storage blob delete-batch `
+            --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
+            --source '$web' `
             --auth-mode login
 
       - name: Upload frontend assets
         env:
           AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
-          az storage blob upload-batch \
-            --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT" \
-            --destination '$web' \
-            --source frontend/dist \
-            --overwrite \
+          az storage blob upload-batch `
+            --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
+            --destination '$web' `
+            --source frontend/dist `
+            --overwrite `
             --auth-mode login
