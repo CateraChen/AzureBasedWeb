@@ -41,12 +41,8 @@ jobs:
         env:
           AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ vars.AZURE_FRONTEND_STORAGE_ACCOUNT || secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
-          if (-not $env:AZURE_FRONTEND_STORAGE_ACCOUNT) {
-            throw 'AZURE_FRONTEND_STORAGE_ACCOUNT is missing. Set it in GitHub Variables or Secrets before running this workflow.'
-          }
-
           az storage blob service-properties update `
-            --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
+            --account-name "cpstoragecatera" `
             --static-website `
             --index-document index.html `
             --404-document index.html `
@@ -56,12 +52,8 @@ jobs:
         env:
           AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ vars.AZURE_FRONTEND_STORAGE_ACCOUNT || secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
-          if (-not $env:AZURE_FRONTEND_STORAGE_ACCOUNT) {
-            throw 'AZURE_FRONTEND_STORAGE_ACCOUNT is missing. Set it in GitHub Variables or Secrets before running this workflow.'
-          }
-
           az storage blob delete-batch `
-            --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
+            --account-name "cpstoragecatera" `
             --source '$web' `
             --auth-mode login
 
@@ -69,12 +61,8 @@ jobs:
         env:
           AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ vars.AZURE_FRONTEND_STORAGE_ACCOUNT || secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
-          if (-not $env:AZURE_FRONTEND_STORAGE_ACCOUNT) {
-            throw 'AZURE_FRONTEND_STORAGE_ACCOUNT is missing. Set it in GitHub Variables or Secrets before running this workflow.'
-          }
-
           az storage blob upload-batch `
-            --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
+            --account-name "cpstoragecatera" `
             --destination '$web' `
             --source frontend/dist `
             --overwrite `
