@@ -29,7 +29,7 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         env:
-          VITE_API_URL: https://${{ secrets.AZURE_BACKEND_WEBAPP_NAME }}.azurewebsites.net
+          VITE_API_URL: https://${{ vars.AZURE_BACKEND_WEBAPP_NAME || secrets.AZURE_BACKEND_WEBAPP_NAME }}.azurewebsites.net
         run: npm run build
 
       - name: Login to Azure
@@ -39,8 +39,12 @@ jobs:
 
       - name: Ensure static website is enabled
         env:
-          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ vars.AZURE_FRONTEND_STORAGE_ACCOUNT || secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
+          if (-not $env:AZURE_FRONTEND_STORAGE_ACCOUNT) {
+            throw 'AZURE_FRONTEND_STORAGE_ACCOUNT is missing. Set it in GitHub Variables or Secrets before running this workflow.'
+          }
+
           az storage blob service-properties update `
             --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
             --static-website `
@@ -50,8 +54,12 @@ jobs:
 
       - name: Clear previous frontend assets
         env:
-          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ vars.AZURE_FRONTEND_STORAGE_ACCOUNT || secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
+          if (-not $env:AZURE_FRONTEND_STORAGE_ACCOUNT) {
+            throw 'AZURE_FRONTEND_STORAGE_ACCOUNT is missing. Set it in GitHub Variables or Secrets before running this workflow.'
+          }
+
           az storage blob delete-batch `
             --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
             --source '$web' `
@@ -59,8 +67,12 @@ jobs:
 
       - name: Upload frontend assets
         env:
-          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+          AZURE_FRONTEND_STORAGE_ACCOUNT: ${{ vars.AZURE_FRONTEND_STORAGE_ACCOUNT || secrets.AZURE_FRONTEND_STORAGE_ACCOUNT }}
         run: |
+          if (-not $env:AZURE_FRONTEND_STORAGE_ACCOUNT) {
+            throw 'AZURE_FRONTEND_STORAGE_ACCOUNT is missing. Set it in GitHub Variables or Secrets before running this workflow.'
+          }
+
           az storage blob upload-batch `
             --account-name "$env:AZURE_FRONTEND_STORAGE_ACCOUNT" `
             --destination '$web' `
