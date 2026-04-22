@@ -28,6 +28,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetProduct(Guid id, CancellationToken ct)
     {
+        
         var result = await mediator.Send(new GetProductDetailQuery(id), ct);
         return result is null ? NotFound() : Ok(result);
     }

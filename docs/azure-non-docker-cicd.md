@@ -49,6 +49,8 @@ chmod +x scripts/azure-setup.sh
 ### 登录问题
 
 - 如果浏览器登录因为 MFA 失败，脚本会自动回退到 `az login --use-device-code`。
+- 如果登录时报 `Certificate verification failed`、`UNEXPECTED_EOF_WHILE_READING` 或类似 TLS 错误，通常是代理或公司根证书没有被 Azure CLI 信任。先把根证书保存成 PEM 文件，然后设置 `AZURE_CA_BUNDLE=/path/to/company-root-ca.pem` 再运行脚本。
+- 如果提示 `StorageAccountAlreadyTaken`，说明 `FRONTEND_STORAGE_ACCOUNT` 这个名字在全局范围内已经被占用。换一个 3 到 24 位、全小写字母和数字的名字再运行。
 - 如果提示 `No subscriptions found`，这不是脚本问题，而是当前登录账号在该 tenant 下没有可用 Azure 订阅。
 - 如果提示 `MissingSubscriptionRegistration`，脚本现在会自动注册常用 provider，包括 `Microsoft.Web`、`Microsoft.Storage` 和 `Microsoft.Sql`。
 - 如果提示 `Operation cannot be completed without additional quota` 且指向 `Free VMs` 或 `Basic VMs`，优先尝试 `windows + D1` 共享层。脚本现在默认就是这个组合。
