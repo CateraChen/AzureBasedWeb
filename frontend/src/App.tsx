@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/layout/Navbar';
+import CartSidebar from './components/shop/CartSidebar';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import ShopPage from './pages/ShopPage';
@@ -16,6 +17,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <BrowserRouter>
+            <CartSidebar />
             <Navbar />
             <main>
               <Routes>

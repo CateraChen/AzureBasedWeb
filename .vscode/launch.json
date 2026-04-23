@@ -2,11 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Bacchus API (https)",
-      "type": "dotnet",
+      "name": "WanJiaDengHuo API (run task command)",
+      "type": "node-terminal",
       "request": "launch",
-      "projectPath": "${workspaceFolder}/backend/Bacchus.API/Bacchus.API.csproj",
-      "launchConfigurationId": "https"
+      "command": "env Database__Provider=InMemory dotnet run --project ${workspaceFolder}/backend/WanJiaDengHuo.API/WanJiaDengHuo.API.csproj"
     }
   ]
 }

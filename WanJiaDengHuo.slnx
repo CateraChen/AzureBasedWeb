@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/WanJiaDengHuo.API/WanJiaDengHuo.API.csproj" />
+    <Project Path="backend/WanJiaDengHuo.Application/WanJiaDengHuo.Application.csproj" />
+    <Project Path="backend/WanJiaDengHuo.Domain/WanJiaDengHuo.Domain.csproj" />
+    <Project Path="backend/WanJiaDengHuo.Infrastructure/WanJiaDengHuo.Infrastructure.csproj" />
+  </Folder>
+</Solution>

@@ -20,6 +20,8 @@
 - `scripts/azure-setup.sh`
   - 创建 Azure 资源并输出 GitHub 需要的 secrets
 
+> 说明：前端 package 已移动到仓库根目录，因此 CI/CD 里的前端安装与构建都应在根目录执行，直接使用根目录 `package-lock.json` 和 `npm run build`。
+
 ## 初始化 Azure
 
 1. 编辑 `scripts/azure-setup.sh` 顶部变量，至少填写这些值：
@@ -87,8 +89,8 @@ chmod +x scripts/azure-setup.sh
 - `ASPNETCORE_ENVIRONMENT=Production`
 - `ConnectionStrings__DefaultConnection`
 - `Jwt__Secret`
-- `Jwt__Issuer=bacchus-api`
-- `Jwt__Audience=bacchus-frontend`
+- `Jwt__Issuer=wanjiadenghuo-api`
+- `Jwt__Audience=wanjiadenghuo-frontend`
 - `AllowedOrigins=<Azure Storage Static Website URL>`
 
 当 `ENABLE_AZURE_SQL=false` 时，不会写入 `ConnectionStrings__DefaultConnection`，而是写入 `Database__Provider=InMemory`。

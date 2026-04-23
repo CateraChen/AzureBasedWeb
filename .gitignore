@@ -1,17 +1,24 @@
+# Ignore node_modules and build output
 /frontend/node_modules
 /frontend/dist
-/scripts
-/backend/Bacchus.Api/bin
-/backend/Bacchus.Api/obj
-/backend/Bacchus.Domain/bin
-/backend/Bacchus.Domain/obj
-/backend/Bacchus.Infrastructure/bin
-/backend/Bacchus.Infrastructure/obj
-/backend/Bacchus.Application/bin
-/backend/Bacchus.Application/obj
+
+# Ignore build output for backend projects
+/backend/WanJiaDengHuo.Api/bin
+/backend/WanJiaDengHuo.Api/obj
+/backend/WanJiaDengHuo.Domain/bin
+/backend/WanJiaDengHuo.Domain/obj
+/backend/WanJiaDengHuo.Infrastructure/bin
+/backend/WanJiaDengHuo.Infrastructure/obj
+/backend/WanJiaDengHuo.Application/bin
+/backend/WanJiaDengHuo.Application/obj
 
 
 # Ignore AI skill files
 .github/prompts/
 .github/skills/
 AGENTS.md
+
+# root level .gitignore
+# Ignore node_modules and build output
+/node_modules
+/dist

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import FilterPanel from '../components/shop/FilterPanel';
 import ProductGrid from '../components/shop/ProductGrid';
-import CartSidebar from '../components/shop/CartSidebar';
 import type { ProductFilters } from '../types';
 import { fetchFilters, fetchProducts } from '../services/shop';
+import { SearchIcon, GridIcon, ListIcon } from '../components/common/Icons';
 
 const DEFAULT_FILTERS: ProductFilters = { page: 1, pageSize: 12 };
 
@@ -12,6 +13,7 @@ export default function ShopPage() {
   const [filters, setFilters] = useState<ProductFilters>(DEFAULT_FILTERS);
   const [keyword, setKeyword] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const { t } = useTranslation();
 
   const { data: filterOptions } = useQuery({
     queryKey: ['filters'],
@@ -41,83 +43,90 @@ export default function ShopPage() {
 
   return (
     <div className="shop-page">
-      {/* Search bar */}
-      <form className="shop-search-bar" onSubmit={handleSearch}>
-        <input
-          className="shop-search-input"
-          placeholder="Input Wine Type, Varietal or Keyword, then enter to search"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-        />
-        <button type="submit" className="shop-search-btn">🔍</button>
-      </form>
+      <header className="shop-header">
+        <h1 className="shop-title">{t('shop.title')}</h1>
+        <p className="shop-subtitle">{t('shop.subtitle')}</p>
+        
+        <div className="search-container">
+          <form className="shop-search-bar" onSubmit={handleSearch}>
+            <SearchIcon className="search-icon" size={20} />
+            <input
+              className="shop-search-input"
+              placeholder={t('shop.search_placeholder')}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+            />
+          </form>
+        </div>
+      </header>
 
-      {/* Filter panel */}
-      {filterOptions && (
-        <FilterPanel
-          options={filterOptions}
-          filters={filters}
-          onChange={updateFilter}
-          onReset={reset}
-        />
-      )}
-
-      {/* Results area */}
-      <div className="shop-content">
-        <div className="shop-main">
-          <div className="shop-results-header">
-            <div>
-              <strong>Here are your search results.</strong>
-              <span className="shop-subtext">
-                {' '}For pricing and availability please reach out to your representative or contact our customer service team.
-              </span>
+      <div className="shop-layout-container">
+        <main className="shop-results-main">
+          {filterOptions && (
+            <div className="shop-filters-standalone">
+              <FilterPanel
+                options={filterOptions}
+                filters={filters}
+                onChange={updateFilter}
+                onReset={reset}
+              />
             </div>
-            <div className="shop-view-toggle">
+          )}
+          
+          <div className="shop-toolbar">
+            <div className="results-count">
+              {t('shop.results_found', { count: pagedResult?.totalCount ?? 0 })}
+            </div>
+            <div className="shop-view-options">
               <button
-                className={`shop-toggle-btn ${view === 'grid' ? 'shop-active-toggle' : ''}`}
+                className={`view-btn ${view === 'grid' ? 'active' : ''}`}
                 onClick={() => setView('grid')}
+                title="Grid View"
               >
-                Grid
+                <GridIcon size={20} />
               </button>
               <button
-                className={`shop-toggle-btn ${view === 'list' ? 'shop-active-toggle' : ''}`}
+                className={`view-btn ${view === 'list' ? 'active' : ''}`}
                 onClick={() => setView('list')}
+                title="List View"
               >
-                List
+                <ListIcon size={20} />
               </button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="shop-loading">Loading...</div>
+            <div className="shop-loading-state">
+              <p>Curating your selection...</p>
+            </div>
           ) : (
-            <>
+            <div className="shop-grid-wrapper">
               <ProductGrid products={pagedResult?.items ?? []} view={view} />
-              {/* Pagination */}
+              
               {pagedResult && pagedResult.totalPages > 1 && (
-                <div className="shop-pagination">
+                <div className="shop-pagination-modern">
                   <button
+                    className="pagination-btn"
                     disabled={!pagedResult.hasPrev}
                     onClick={() => updateFilter({ page: filters.page - 1 })}
                   >
-                    ← Prev
+                    Previous
                   </button>
-                  <span>Page {pagedResult.page} / {pagedResult.totalPages}</span>
+                  <span className="page-indicator">
+                    {pagedResult.page} <span>of</span> {pagedResult.totalPages}
+                  </span>
                   <button
+                    className="pagination-btn"
                     disabled={!pagedResult.hasNext}
                     onClick={() => updateFilter({ page: filters.page + 1 })}
                   >
-                    Next →
+                    Next
                   </button>
                 </div>
               )}
-            </>
+            </div>
           )}
-        </div>
-
-        <aside className="shop-aside">
-          <CartSidebar />
-        </aside>
+        </main>
       </div>
     </div>
   );

@@ -3,12 +3,12 @@
 export interface ProductSummary {
   id: string;
   name: string;
-  wineType: string;
-  varietal: string;
-  region: string;
-  winery: string;
-  vintage: number | null;
-  volume: string;
+  category: string;
+  style: string;
+  brand: string;
+  designer: string;
+  releaseYear: number | null;
+  sizeRange: string;
   imageUrl: string | null;
   availabilityStatus: 'Available' | 'LowStock' | 'OutOfStock';
   stockCases: number;
@@ -32,11 +32,11 @@ export interface PagedResult<T> {
 }
 
 export interface FilterOptions {
-  wineTypes: string[];
-  varietals: string[];
-  regions: string[];
-  wineries: string[];
-  vintages: number[];
+  categories: string[];
+  styles: string[];
+  brands: string[];
+  designers: string[];
+  releaseYears: number[];
 }
 
 export interface CartItem {
@@ -44,7 +44,7 @@ export interface CartItem {
   productId: string;
   productName: string;
   imageUrl: string | null;
-  volume: string;
+  sizeRange: string;
   quantity: number;
   availabilityStatus: string;
 }
@@ -59,7 +59,7 @@ export interface WishlistItem {
   productId: string;
   productName: string;
   imageUrl: string | null;
-  volume: string;
+  sizeRange: string;
   availabilityStatus: string;
 }
 
@@ -73,11 +73,11 @@ export interface AuthResponse {
 }
 
 export interface ProductFilters {
-  wineType?: string;
-  varietal?: string;
-  region?: string;
-  winery?: string;
-  vintage?: number;
+  category?: string;
+  style?: string;
+  brand?: string;
+  designer?: string;
+  releaseYear?: number;
   keyword?: string;
   page: number;
   pageSize: number;

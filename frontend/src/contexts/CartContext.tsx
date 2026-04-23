@@ -1,6 +1,7 @@
-import React, { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useReducer } from 'react';
 import type { Cart } from '../types';
 import { addToCart, clearCart, fetchCart, removeCartItem } from '../services/cart';
+import { CartContext } from './cartContextState';
 
 interface CartState {
   cart: Cart;
@@ -23,17 +24,6 @@ function reducer(state: CartState, action: CartAction): CartState {
     default: return state;
   }
 }
-
-interface CartContextValue {
-  cart: Cart;
-  loading: boolean;
-  add: (productId: string, quantity: number) => Promise<void>;
-  remove: (itemId: string) => Promise<void>;
-  clear: () => Promise<void>;
-  refresh: () => Promise<void>;
-}
-
-const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initial);
@@ -70,10 +60,4 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       {children}
     </CartContext.Provider>
   );
-}
-
-export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error('useCart must be used within CartProvider');
-  return ctx;
 }
