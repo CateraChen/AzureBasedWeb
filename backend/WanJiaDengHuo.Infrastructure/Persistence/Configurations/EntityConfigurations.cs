@@ -1,6 +1,7 @@
 using WanJiaDengHuo.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace WanJiaDengHuo.Infrastructure.Persistence.Configurations;
 
@@ -18,10 +19,17 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.ImageUrl).HasMaxLength(500);
         builder.Property(p => p.AvailabilityStatus).HasMaxLength(30);
         builder.Property(p => p.RatingScore).HasPrecision(5, 2);
+
+        var dealsComparer = new ValueComparer<List<string>>(
+            (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
         builder.Property(p => p.Deals)
             .HasConversion(
                 v => string.Join("|", v),
-                v => v.Length == 0 ? new List<string>() : new List<string>(v.Split('|', StringSplitOptions.RemoveEmptyEntries)));
+                v => v.Length == 0 ? new List<string>() : new List<string>(v.Split('|', StringSplitOptions.RemoveEmptyEntries)))
+            .Metadata.SetValueComparer(dealsComparer);
 
         builder.HasIndex(p => p.Category);
         builder.HasIndex(p => p.Style);

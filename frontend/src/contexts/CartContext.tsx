@@ -1,7 +1,13 @@
-import React, { useCallback, useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useReducer, useContext } from 'react';
 import type { Cart } from '../types';
 import { addToCart, clearCart, fetchCart, removeCartItem } from '../services/cart';
 import { CartContext } from './cartContextState';
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (!context) throw new Error('useCart must be used within CartProvider');
+  return context;
+}
 
 interface CartState {
   cart: Cart;

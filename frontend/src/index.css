@@ -3,16 +3,16 @@
   --primary-dark: #7d1c39;
   --primary-light: #f5bfd0;
   
-  --text: #6b6375;
-  --text-h: #08060d;
+  --text: #ffffff;
+  --text-h: #ffffff;
   --text-muted: #999;
   
-  --bg: #fff;
-  --bg-alt: #fafafa;
+  --bg: #1a1a1a;
+  --bg-alt: #1a1a1a;
   
-  --border: #e5e4e7;
-  --border-strong: #ddd;
-  --border-subtle: #f0f0f0;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --border-subtle: rgba(255, 255, 255, 0.05);
   
   --code-bg: #f4f3ec;
   --accent: #aa3bff;
